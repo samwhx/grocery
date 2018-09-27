@@ -2,6 +2,7 @@ import { Component, OnInit, ViewChild } from '@angular/core';
 import { FormGroup, FormControl, Validators } from '@angular/forms'; // reactive forms
 import { SearchService } from '../../services/search.service'; // service
 import { MatSort, MatTableDataSource, MatPaginator } from '@angular/material'; // sort
+import { Router } from '@angular/router'; // routing
 
 @Component({
   selector: 'app-search',
@@ -11,27 +12,27 @@ import { MatSort, MatTableDataSource, MatPaginator } from '@angular/material'; /
 export class SearchComponent implements OnInit {
 
   // list of types for selection
-  types = ['Title', 'Description', 'Both'];
+  types = ['Brand', 'Product Name', 'Both'];
 
   // for showing details of film whem clicking on the film id
   showDetails = false;
 
   // for table
-  displayedColumns: string[] = ['title', 'description', 'url'];
-  displayedColumnsForDetails: string[] = ['title', 'description', 'release'];
-  films = (new MatTableDataSource([]));
-  filmDetails = (new MatTableDataSource([]));
+  displayedColumns: string[] = ['upc12', 'brand', 'name', 'edit'];
+  displayedColumnsForDetails: string[] = ['upc12', 'brand', 'name'];
+  groceries = (new MatTableDataSource([]));
+  groceryDetails = (new MatTableDataSource([]));
   // sort
   @ViewChild(MatSort) sort: MatSort;
   // paginator
   length = 1000;
-  pageSize = 5;
-  pageSizeOptions: number[] = [5, 10, 25, 100];
+  pageSize = 20;
+  pageSizeOptions: number[] = [5, 10, 20, 100];
   @ViewChild(MatPaginator) paginator: MatPaginator;
 
   searchCriteria = {
-    'title': '',
-    'description': ''
+    'brand': '',
+    'name': ''
   };
 
   // reactive forms
@@ -43,7 +44,8 @@ export class SearchComponent implements OnInit {
     });
   }
 
-  constructor(private SearchSvc: SearchService) {
+  constructor(private SearchSvc: SearchService,
+              private route: Router) {
     this.searchForm = this.createFormGroup();
   }
 
@@ -58,47 +60,52 @@ export class SearchComponent implements OnInit {
 
   // submit button
   onSubmit () {
-    this.searchCriteria.title = ''; // reset to default
-    this.searchCriteria.description = ''; // reset to default
+    this.searchCriteria.brand = ''; // reset to default
+    this.searchCriteria.name = ''; // reset to default
     this.showDetails = false; // reset to default
     console.log('Form data: ', this.searchForm.value);
-    if (this.searchForm.value.type === 'Title' ) {
-    this.searchCriteria.title = `%${this.searchForm.value.term}%`;
+    if (this.searchForm.value.type === 'Brand' ) {
+    this.searchCriteria.brand = `%${this.searchForm.value.term}%`;
     }
-    if (this.searchForm.value.type === 'Description' ) {
-      this.searchCriteria.description = `%${this.searchForm.value.term}%`;
+    if (this.searchForm.value.type === 'Product Name' ) {
+      this.searchCriteria.name = `%${this.searchForm.value.term}%`;
     }
     if (this.searchForm.value.type === 'Both' ) {
-      this.searchCriteria.title = `%${this.searchForm.value.term}%`;
-      this.searchCriteria.description = `%${this.searchForm.value.term}%`;
+      this.searchCriteria.brand = `%${this.searchForm.value.term}%`;
+      this.searchCriteria.name = `%${this.searchForm.value.term}%`;
     }
-    console.log('Title:', this.searchCriteria.title, ', Description:', this.searchCriteria.description);
-    this.SearchSvc.getFilms(this.searchCriteria).subscribe((results) => {
+    console.log('Brand:', this.searchCriteria.brand, ', Product Name:', this.searchCriteria.name);
+    this.SearchSvc.getGroceries(this.searchCriteria).subscribe((results) => {
       console.log('Suscribed Results; ', results);
-      this.films = new MatTableDataSource(results);
-      this.films.sort = this.sort;
-      this.films.paginator = this.paginator;
+      this.groceries = new MatTableDataSource(results);
+      this.groceries.sort = this.sort;
+      this.groceries.paginator = this.paginator;
     });
     this.searchForm.reset();
   }
 
-  // get film details when clicking on url
-  getFilmDetails(url) {
-    console.log('String to be passed in >>>>> ', url.substr(7));
-    this.SearchSvc.getFilmDetails(url.substr(7)).subscribe((results) => {
-      console.log('Suscribed Results; ', results);
-      this.filmDetails = new MatTableDataSource(results);
-    });
-    this.showDetails = true;
+  // go edit page
+  goEditPage(upc12, brand, name) {
+    this.SearchSvc.editDetails = {
+      'upc12' : upc12,
+      'brand' : brand,
+      'name' : name
+    };
+    this.route.navigate(['/edit']);
+  }
+
+  // go add page
+  goAddPage() {
+    this.route.navigate(['/add']);
   }
 
   ngOnInit() {
     // init get all data
-    this.SearchSvc.getFilms(this.searchCriteria).subscribe((results) => {
+    this.SearchSvc.getGroceries(this.searchCriteria).subscribe((results) => {
       console.log('Suscribed Results; ', results);
-      this.films = new MatTableDataSource(results);
-      this.films.sort = this.sort;
-      this.films.paginator = this.paginator;
+      this.groceries = new MatTableDataSource(results);
+      this.groceries.sort = this.sort;
+      this.groceries.paginator = this.paginator;
     });
   }
 }

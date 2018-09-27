@@ -4,6 +4,8 @@ import { NgModule } from '@angular/core';
 // components
 import { AppComponent } from './app.component';
 import { SearchComponent } from './components/search/search.component';
+import { EditComponent } from './components/edit/edit.component';
+import { AddComponent } from './components/add/add.component';
 
 // reactive forms
 import { ReactiveFormsModule } from '@angular/forms';
@@ -20,10 +22,15 @@ import { SearchService } from './services/search.service';
 import { HttpClientModule } from '@angular/common/http';
 import { HttpModule } from '@angular/http';
 
+// routing
+import { RoutingModule } from './app.routing';
+
 @NgModule({
   declarations: [
     AppComponent,
-    SearchComponent
+    SearchComponent,
+    EditComponent,
+    AddComponent
   ],
   imports: [
     BrowserModule,
@@ -32,7 +39,8 @@ import { HttpModule } from '@angular/http';
     MaterialModule,
     FlexLayoutModule,
     HttpClientModule,
-    HttpModule
+    HttpModule,
+    RoutingModule
   ],
   providers: [SearchService],
   bootstrap: [AppComponent]

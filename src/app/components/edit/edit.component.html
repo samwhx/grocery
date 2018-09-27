@@ -1,0 +1,32 @@
+<!-- toolbar -->
+<mat-toolbar color="primary" fxLayout="row" fxLayoutAlign="space-between center">Edit</mat-toolbar>
+
+<h3 style="margin-left:1em;">Edit Details</h3>
+
+<form [formGroup]="editForm" (ngSubmit)="onSubmit()" novalidate fxLayout="column" fxLayoutAlign="center start" style="margin: 2em;">
+  <!-- brand -->
+  <mat-form-field>
+    <input id="brand" matInput placeholder="key in brand" formControlName="brand" required>
+  </mat-form-field>
+  <div *ngIf="brand.invalid && (brand.dirty || brand.touched)" class="alert">
+    <div *ngIf="brand.errors.required">
+      Brand is required.
+    </div>
+  </div>
+  
+  <!-- name -->
+  <mat-form-field>
+    <input id="name" matInput placeholder="key in name" formControlName="name" required style="width: 200em;">
+  </mat-form-field>
+  <div *ngIf="name.invalid && (name.dirty || name.touched)" class="alert">
+    <div *ngIf="name.errors.required">
+      Name is required.
+    </div>
+  </div>
+  
+  <!-- submit & cancel -->
+  <div fxLayout="row">
+    <button mat-raised-button color="primary" type="submit" [disabled]="editForm.pristine || editForm.status == 'INVALID'">Update</button>
+    <button mat-button (click)="goBack()" style="margin-left: 1em;">Cancel</button>
+  </div>
+  </form>

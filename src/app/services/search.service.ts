@@ -8,18 +8,26 @@ import { Observable } from 'rxjs';
 })
 export class SearchService {
 
+  // array to store data for edit page
+  editDetails = {};
+
+  // concatenated query string for API
   finalSearchCriteria: string;
 
   constructor(private http: HttpClient) { }
 
-  getFilms(criteria): Observable<any> {
-    this.finalSearchCriteria = `/api/films?title=${criteria.title}&description=${criteria.description}`;
+  getGroceries(criteria): Observable<any> {
+    this.finalSearchCriteria = `/api/groceries?brand=${criteria.brand}&name=${criteria.name}`;
     console.log(this.finalSearchCriteria);
     return this.http.get(`${environment.api_url}${this.finalSearchCriteria}`);
   }
 
-  getFilmDetails(criteria): Observable<any> {
-    return this.http.get(`${environment.api_url}/api/films/${criteria}`);
+  editGroceryDetails(details): Observable<any> {
+    return this.http.put(`${environment.api_url}/api/groceries/edit`, details);
+  }
+
+  addGroceryDetails(details): Observable<any> {
+    return this.http.post(`${environment.api_url}/api/groceries/add`, details);
   }
 
 }

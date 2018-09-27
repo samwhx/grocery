@@ -3,6 +3,7 @@ require('dotenv').config()
 const express = require('express')
 const mysql = require("mysql")
 const cors = require('cors')
+const bodyParser = require('body-parser')
 
 ////////////////////////////////////METHODS////////////////////////////////////
 //express
@@ -12,9 +13,11 @@ const app = express()
 app.use(cors())
 
 //sql
-const sqlFindAllFilms = "SELECT film_id, title, description FROM film"
-const sqlFindFilmbyId = "SELECT * FROM film WHERE film_id=?"
-const sqlFindFilmbySearchString = "SELECT film_id, title, description FROM film WHERE (title LIKE ?) || (description LIKE ?)"
+const sqlFindAllGroceries = "SELECT upc12, brand, name FROM grocery_list"
+const sqlFindGrocerybyId = "SELECT upc12, brand, name FROM grocery_list WHERE id=?"
+const sqlEditGroceryDetails = "UPDATE grocery_list SET brand = ?, name= ? WHERE upc12 = ?"
+const sqlAddGroceryDetails = "INSERT INTO grocery_list (brand, name, upc12) VALUES (?, ?, ?)"
+const sqlFindGrocerybySearchString = "SELECT upc12, brand, name FROM grocery_list WHERE (brand LIKE ?) || (name LIKE ?)"
 var pool = mysql.createPool ({ 
   host: process.env.DB_HOST,
   port: process.env.DB_PORT,
@@ -51,15 +54,60 @@ var makeQuery = (sql, pool) => {
 }
 
 //var turned into promise when makeQuery executes
-var findAllFilms = makeQuery(sqlFindAllFilms, pool)
-var findFilmbyId = makeQuery(sqlFindFilmbyId, pool)
-var findFilmbySearchString = makeQuery(sqlFindFilmbySearchString, pool)
+var findAllGroceries = makeQuery(sqlFindAllGroceries, pool)
+var findGrocerybyId = makeQuery(sqlFindGrocerybyId, pool)
+var editGroceryDetails = makeQuery(sqlEditGroceryDetails, pool)
+var addGroceryDetails = makeQuery(sqlAddGroceryDetails, pool)
+var findGrocerybySearchString = makeQuery(sqlFindGrocerybySearchString, pool)
 
 ////////////////////////////////////ROUTES////////////////////////////////////
-//GET one film by Id (params)
-app.get('/films/:filmId', (req, res) => {
-  console.info('params >>>>>', req.params);
-  findFilmbyId([parseInt(req.params.filmId)]).then ((results) => {
+////////////////////////////////////API FOR ANGULAR////////////////////////////////////
+//GET all groceries or search string (angular)
+app.get('/api/groceries', (req, res) => {
+  console.info('query >>>>>', req.query)
+  console.info('brand >>>>>', req.query.brand)
+  console.info('name >>>>>', req.query.name)
+  if(!req.query.brand.trim() && !req.query.name.trim()){
+    findAllGroceries().then ((results) => {
+      let finalResult = []
+      results.forEach((element) => {
+        let value = { brand: "", name: "", upc12: 0 }
+        value.brand = element.brand
+        value.name = element.name
+        value.upc12 = element.upc12
+        finalResult.push(value)
+      })
+      console.info('finalResult: ', finalResult)
+      res.json(finalResult)
+    }).catch((error) => {
+      console.info(error)
+      res.status(500).json(error)
+    })
+  }
+  else {
+    findGrocerybySearchString([req.query.brand,
+                            req.query.name]).then ((results) => {
+      let finalResult = []
+      results.forEach((element) => {
+        let value = { brand: "", name: "", upc12: 0 }
+        value.brand = element.brand
+        value.name = element.name
+        value.upc12 = element.upc12
+        finalResult.push(value)
+      })
+      console.info('finalResult: ', finalResult)
+      res.json(finalResult)
+    }).catch((error) => {
+      console.info(error)
+      res.status(500).json(error)
+    })
+  }
+})
+
+//EDIT one grocery
+app.put('/api/groceries/edit', bodyParser.json(), bodyParser.urlencoded(), (req, res) => {
+  console.info('body >>>>>', req.body);
+  editGroceryDetails([req.body.brand, req.body.name, req.body.upc12]).then ((results) => {
     res.json(results)
   }).catch((error) => {
     console.info(error)
@@ -67,84 +115,10 @@ app.get('/films/:filmId', (req, res) => {
   })
 })
 
-//GET one film by Id (querystring) or all films if there is no querystring
-app.get('/films', (req, res) => {
-  console.info('query >>>>>', req.query)
-  console.info('query.filmId >>>>>', req.query.filmId)
-  if(typeof(req.query.filmId) === 'undefined'){
-    findAllFilms().then ((results) => {
-      let finalResult = []
-      results.forEach((element) => {
-        let value = { title: "", url: null }
-        value.title = element.title
-        value.url = `/films/${element.film_id}`
-        finalResult.push(value)
-        // finalResult.push({ title: element.title, url: `/films/${element.film_id}` })
-      })
-      res.json(finalResult)
-    }).catch((error) => {
-      console.info(error)
-      res.status(500).json(error)
-    })
-  }
-  else {
-    findFilmbyId([parseInt(req.query.filmId)]).then ((results) => {
-      res.json(results)
-    }).catch((error) => {
-      console.info(error)
-      res.status(500).json(error)
-    })
-  }
-})
-
-////////////////////////////////////API FOR ANGULAR////////////////////////////////////
-//GET all films or search string (angular)
-app.get('/api/films', (req, res) => {
-  console.info('query >>>>>', req.query)
-  console.info('title >>>>>', req.query.title)
-  console.info('description >>>>>', req.query.description)
-  if(!req.query.title.trim() && !req.query.description.trim()){
-    findAllFilms().then ((results) => {
-      let finalResult = []
-      results.forEach((element) => {
-        let value = { title: "", description: "", url: null }
-        value.title = element.title
-        value.description = element.description
-        value.url = `/films/${element.film_id}`
-        finalResult.push(value)
-        // finalResult.push({ title: element.title, description: element.description, url: `/films/${element.film_id}` })
-      })
-      console.info('finalResult: ', finalResult)
-      res.json(finalResult)
-    }).catch((error) => {
-      console.info(error)
-      res.status(500).json(error)
-    })
-  }
-  else {
-    findFilmbySearchString([req.query.title,
-                            req.query.description]).then ((results) => {
-      let finalResult = []
-      results.forEach((element) => {
-        let value = { title: "", description: "", url: null }
-        value.title = element.title
-        value.description = element.description
-        value.url = `/films/${element.film_id}`
-        finalResult.push(value)
-        // finalResult.push({ title: element.title, description: element.description, url: `/films/${element.film_id}` })
-      })
-      console.info('finalResult: ', finalResult)
-      res.json(finalResult)
-    }).catch((error) => {
-      console.info(error)
-      res.status(500).json(error)
-    })
-  }
-})
-//GET one film by Id (params)
-app.get('/api/films/:filmId', (req, res) => {
-  console.info('params >>>>>', req.params);
-  findFilmbyId([parseInt(req.params.filmId)]).then ((results) => {
+//ADD one grocery
+app.post('/api/groceries/add', bodyParser.json(), bodyParser.urlencoded(), (req, res) => {
+  console.info('body >>>>>', req.body);
+  addGroceryDetails([req.body.brand, req.body.name, req.body.upc12]).then ((results) => {
     res.json(results)
   }).catch((error) => {
     console.info(error)

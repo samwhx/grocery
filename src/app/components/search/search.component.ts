@@ -14,14 +14,15 @@ export class SearchComponent implements OnInit {
   // list of types for selection
   types = ['Brand', 'Product Name', 'Both'];
 
+  // array of all upc12
+  upc12_array = [];
+
   // for showing details of film whem clicking on the film id
   showDetails = false;
 
   // for table
-  displayedColumns: string[] = ['upc12', 'brand', 'name', 'edit'];
-  displayedColumnsForDetails: string[] = ['upc12', 'brand', 'name'];
+  displayedColumns: string[] = ['upc12', 'brand', 'name', 'edit', 'delete'];
   groceries = (new MatTableDataSource([]));
-  groceryDetails = (new MatTableDataSource([]));
   // sort
   @ViewChild(MatSort) sort: MatSort;
   // paginator
@@ -85,11 +86,12 @@ export class SearchComponent implements OnInit {
   }
 
   // go edit page
-  goEditPage(upc12, brand, name) {
+  goEditPage(upc12, brand, name, id) {
     this.SearchSvc.editDetails = {
       'upc12' : upc12,
       'brand' : brand,
-      'name' : name
+      'name' : name,
+      'id' : id,
     };
     this.route.navigate(['/edit']);
   }
@@ -99,6 +101,17 @@ export class SearchComponent implements OnInit {
     this.route.navigate(['/add']);
   }
 
+  // delete item
+  deleteGrocery(id) {
+    if (confirm('Are you sure you want to delete this record?')) {
+      this.SearchSvc.deleteGrocery({'id' : id}).subscribe((results) => {
+        console.log('Suscribed Results; ', results);
+        alert('Record Deleted!');
+        window.location.reload(); // reload as router will not work if it is same page
+      });
+    }
+  }
+
   ngOnInit() {
     // init get all data
     this.SearchSvc.getGroceries(this.searchCriteria).subscribe((results) => {
@@ -106,6 +119,11 @@ export class SearchComponent implements OnInit {
       this.groceries = new MatTableDataSource(results);
       this.groceries.sort = this.sort;
       this.groceries.paginator = this.paginator;
+      results.forEach((result) => {
+        this.upc12_array.push(result.upc12);
+      });
     });
+
+    this.SearchSvc.upc12s = this.upc12_array;
   }
 }

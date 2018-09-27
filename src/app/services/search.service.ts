@@ -10,6 +10,8 @@ export class SearchService {
 
   // array to store data for edit page
   editDetails = {};
+  // array to store upc12s
+  upc12s = [];
 
   // concatenated query string for API
   finalSearchCriteria: string;
@@ -28,6 +30,10 @@ export class SearchService {
 
   addGroceryDetails(details): Observable<any> {
     return this.http.post(`${environment.api_url}/api/groceries/add`, details);
+  }
+
+  deleteGrocery(details): Observable<any> {
+    return this.http.post(`${environment.api_url}/api/groceries/delete`, details);
   }
 
 }

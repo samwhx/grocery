@@ -32,7 +32,10 @@ export class AddComponent implements OnInit {
     return new FormGroup({
     brand: new FormControl('', Validators.required),
     name: new FormControl('', Validators.required),
-    upc12: new FormControl('', Validators.required)
+    upc12: new FormControl('', [
+      Validators.required,
+      Validators.pattern('^[0-9]*$') // regex for numbers only
+      ])
     });
   }
 
@@ -48,12 +51,11 @@ export class AddComponent implements OnInit {
 
   // submit button
   onSubmit () {
-    console.log(this.addForm.value);
+    console.log('Submitted Values: ', this.addForm.value);
     this.addFields.brand = this.addForm.value.brand;
     this.addFields.name = this.addForm.value.name;
     this.addFields.upc12 = this.addForm.value.upc12;
-    console.log('..............', this.upc12_array);
-    if (this.upc12_array.find(x => x == this.addForm.value.upc12)) {
+    if (this.upc12_array.find(x => x == this.addForm.value.upc12)) { // tslint:disable-line
       alert('Invalid! UPC12 is not unique!');
       this.route.navigate(['/add']);
     } else {
@@ -71,14 +73,7 @@ export class AddComponent implements OnInit {
   }
 
   ngOnInit() {
-    // init get upc12
-    this.SearchSvc.getGroceries(this.searchCriteria).subscribe((results) => {
-      console.log('Suscribed Results; ', results);
-      results.forEach((result) => {
-        this.upc12_array.push(result.upc12);
-      });
-      console.log('upc12_array; ', this.upc12_array);
-    });
+    this.upc12_array = this.SearchSvc.upc12s;
   }
 }
 

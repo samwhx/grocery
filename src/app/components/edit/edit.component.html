@@ -1,9 +1,9 @@
 <!-- toolbar -->
 <mat-toolbar color="primary" fxLayout="row" fxLayoutAlign="space-between center">Edit</mat-toolbar>
 
-<h3 style="margin-left:1em;">Edit Details</h3>
+<img src="http://www.barcodes4.me/barcode/c128a/{{editFields.upc12}}.png?IsTextDrawn=1" alt="barcode" style="margin: 2em;">
 
-<form [formGroup]="editForm" (ngSubmit)="onSubmit()" novalidate fxLayout="column" fxLayoutAlign="center start" style="margin: 2em;">
+<form [formGroup]="editForm" (ngSubmit)="onSubmit()" novalidate fxLayout="column" fxLayoutAlign="center" style="margin-left: 2em;">
   <!-- brand -->
   <mat-form-field>
     <input id="brand" matInput placeholder="key in brand" formControlName="brand" required>
@@ -16,14 +16,27 @@
   
   <!-- name -->
   <mat-form-field>
-    <input id="name" matInput placeholder="key in name" formControlName="name" required style="width: 200em;">
+    <input id="name" matInput placeholder="key in name" formControlName="name" required>
   </mat-form-field>
   <div *ngIf="name.invalid && (name.dirty || name.touched)" class="alert">
     <div *ngIf="name.errors.required">
       Name is required.
     </div>
   </div>
-  
+
+  <!-- upc12 -->
+  <mat-form-field>
+      <input id="upc12" matInput placeholder="upc12 key" formControlName="upc12" required>
+  </mat-form-field>
+  <div *ngIf="upc12.invalid && (upc12.dirty || upc12.touched)" class="alert">
+    <div *ngIf="upc12.errors.required">
+      UPC12 is required.
+    </div>
+    <div *ngIf="upc12.errors.pattern">
+      Only numbers are allowed.
+    </div>
+  </div>
+
   <!-- submit & cancel -->
   <div fxLayout="row">
     <button mat-raised-button color="primary" type="submit" [disabled]="editForm.pristine || editForm.status == 'INVALID'">Update</button>

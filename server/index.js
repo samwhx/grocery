@@ -13,11 +13,11 @@ const app = express()
 app.use(cors())
 
 //sql
-const sqlFindAllGroceries = "SELECT upc12, brand, name FROM grocery_list"
-const sqlFindGrocerybyId = "SELECT upc12, brand, name FROM grocery_list WHERE id=?"
-const sqlEditGroceryDetails = "UPDATE grocery_list SET brand = ?, name= ? WHERE upc12 = ?"
+const sqlFindAllGroceries = "SELECT upc12, brand, name, id FROM grocery_list"
+const sqlEditGroceryDetails = "UPDATE grocery_list SET brand = ?, name= ?, upc12 = ?  WHERE id = ?"
 const sqlAddGroceryDetails = "INSERT INTO grocery_list (brand, name, upc12) VALUES (?, ?, ?)"
-const sqlFindGrocerybySearchString = "SELECT upc12, brand, name FROM grocery_list WHERE (brand LIKE ?) || (name LIKE ?)"
+const sqlDeleteGrocery = "DELETE FROM grocery_list WHERE id = ?;"
+const sqlFindGrocerybySearchString = "SELECT upc12, brand, name, id FROM grocery_list WHERE (brand LIKE ?) || (name LIKE ?)"
 var pool = mysql.createPool ({ 
   host: process.env.DB_HOST,
   port: process.env.DB_PORT,
@@ -55,9 +55,9 @@ var makeQuery = (sql, pool) => {
 
 //var turned into promise when makeQuery executes
 var findAllGroceries = makeQuery(sqlFindAllGroceries, pool)
-var findGrocerybyId = makeQuery(sqlFindGrocerybyId, pool)
 var editGroceryDetails = makeQuery(sqlEditGroceryDetails, pool)
 var addGroceryDetails = makeQuery(sqlAddGroceryDetails, pool)
+var deleteGrocery = makeQuery(sqlDeleteGrocery, pool)
 var findGrocerybySearchString = makeQuery(sqlFindGrocerybySearchString, pool)
 
 ////////////////////////////////////ROUTES////////////////////////////////////
@@ -71,10 +71,11 @@ app.get('/api/groceries', (req, res) => {
     findAllGroceries().then ((results) => {
       let finalResult = []
       results.forEach((element) => {
-        let value = { brand: "", name: "", upc12: 0 }
+        let value = { brand: "", name: "", upc12: 0, id: 0 }
         value.brand = element.brand
         value.name = element.name
         value.upc12 = element.upc12
+        value.id = element.id
         finalResult.push(value)
       })
       console.info('finalResult: ', finalResult)
@@ -89,10 +90,11 @@ app.get('/api/groceries', (req, res) => {
                             req.query.name]).then ((results) => {
       let finalResult = []
       results.forEach((element) => {
-        let value = { brand: "", name: "", upc12: 0 }
+        let value = { brand: "", name: "", upc12: 0, id: 0 }
         value.brand = element.brand
         value.name = element.name
         value.upc12 = element.upc12
+        value.id = element.id
         finalResult.push(value)
       })
       console.info('finalResult: ', finalResult)
@@ -107,7 +109,7 @@ app.get('/api/groceries', (req, res) => {
 //EDIT one grocery
 app.put('/api/groceries/edit', bodyParser.json(), bodyParser.urlencoded(), (req, res) => {
   console.info('body >>>>>', req.body);
-  editGroceryDetails([req.body.brand, req.body.name, req.body.upc12]).then ((results) => {
+  editGroceryDetails([req.body.brand, req.body.name, req.body.upc12, req.body.id]).then ((results) => {
     res.json(results)
   }).catch((error) => {
     console.info(error)
@@ -119,6 +121,17 @@ app.put('/api/groceries/edit', bodyParser.json(), bodyParser.urlencoded(), (req,
 app.post('/api/groceries/add', bodyParser.json(), bodyParser.urlencoded(), (req, res) => {
   console.info('body >>>>>', req.body);
   addGroceryDetails([req.body.brand, req.body.name, req.body.upc12]).then ((results) => {
+    res.json(results)
+  }).catch((error) => {
+    console.info(error)
+    res.status(500).json(error)
+  })
+})
+
+//DELETE one grocery
+app.post('/api/groceries/delete', bodyParser.json(), bodyParser.urlencoded(), (req, res) => {
+  console.info('body >>>>>', req.body);
+  deleteGrocery([req.body.id]).then ((results) => {
     res.json(results)
   }).catch((error) => {
     console.info(error)

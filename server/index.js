@@ -1,7 +1,6 @@
 ////////////////////////////////////LIBRARIES////////////////////////////////////
 require('dotenv').config()
 const express = require('express')
-const hbs = require('express-handlebars')
 const mysql = require("mysql")
 const cors = require('cors')
 
@@ -11,10 +10,6 @@ const app = express()
 
 //cors
 app.use(cors())
-
-//handlebars
-app.engine('handlebars', hbs({ defaultLayout: 'index'}))
-app.set('view engine', 'handlebars')
 
 //sql
 const sqlFindAllFilms = "SELECT film_id, title, description FROM film"
